@@ -1,7 +1,7 @@
 {
   "name": "libundler",
   "description": "CLI to bundle libs using rollup",
-  "version": "0.0.3",
+  "version": "0.0.4",
   "bin": {
     "lib": "./bin/lib.js"
   },
