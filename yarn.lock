@@ -1101,7 +1101,7 @@ find-up@^1.0.0:
     path-exists "^2.0.0"
     pinkie-promise "^2.0.0"
 
-find-up@^2.0.0:
+find-up@^2.0.0, find-up@^2.1.0:
   version "2.1.0"
   resolved "https://registry.npmjs.org/find-up/-/find-up-2.1.0.tgz#45d1b7e506c717ddd482775a2b77920a3c0c57a7"
   dependencies:
@@ -2781,9 +2781,9 @@ rollup-pluginutils@^2.0.1:
     estree-walker "^0.3.0"
     micromatch "^2.3.11"
 
-rollup@^0.50.0:
-  version "0.50.1"
-  resolved "https://registry.npmjs.org/rollup/-/rollup-0.50.1.tgz#e4dafcbf8d2bb0d9f5589d0cc6f64d76b8815730"
+rollup@^0.51.3:
+  version "0.51.3"
+  resolved "https://registry.npmjs.org/rollup/-/rollup-0.51.3.tgz#229e0004d6cf8f207f77a7a8dc76924155f4c1dd"
 
 run-async@^2.2.0:
   version "2.3.0"
@@ -3231,17 +3231,13 @@ typedarray@^0.0.6:
   version "0.0.6"
   resolved "https://registry.npmjs.org/typedarray/-/typedarray-0.0.6.tgz#867ac74e3864187b1d3d47d996a78ec5c8830777"
 
-typescript@2.5.3:
-  version "2.5.3"
-  resolved "https://registry.npmjs.org/typescript/-/typescript-2.5.3.tgz#df3dcdc38f3beb800d4bc322646b04a3f6ca7f0d"
+typescript@2.6.1, typescript@^2.3.2:
+  version "2.6.1"
+  resolved "https://registry.npmjs.org/typescript/-/typescript-2.6.1.tgz#ef39cdea27abac0b500242d6726ab90e0c846631"
 
 typescript@^1.8.9:
   version "1.8.10"
   resolved "https://registry.npmjs.org/typescript/-/typescript-1.8.10.tgz#b475d6e0dff0bf50f296e5ca6ef9fbb5c7320f1e"
-
-typescript@^2.3.2:
-  version "2.6.1"
-  resolved "https://registry.npmjs.org/typescript/-/typescript-2.6.1.tgz#ef39cdea27abac0b500242d6726ab90e0c846631"
 
 ua-parser-js@^0.7.9:
   version "0.7.17"
@@ -3432,26 +3428,25 @@ yallist@^2.1.2:
   version "2.1.2"
   resolved "https://registry.npmjs.org/yallist/-/yallist-2.1.2.tgz#1c11f9218f076089a47dd512f93c6699a6a81d52"
 
-yargs-parser@^7.0.0:
-  version "7.0.0"
-  resolved "https://registry.npmjs.org/yargs-parser/-/yargs-parser-7.0.0.tgz#8d0ac42f16ea55debd332caf4c4038b3e3f5dfd9"
+yargs-parser@^8.0.0:
+  version "8.0.0"
+  resolved "https://registry.npmjs.org/yargs-parser/-/yargs-parser-8.0.0.tgz#21d476330e5a82279a4b881345bf066102e219c6"
   dependencies:
     camelcase "^4.1.0"
 
-yargs@^9.0.1:
-  version "9.0.1"
-  resolved "https://registry.npmjs.org/yargs/-/yargs-9.0.1.tgz#52acc23feecac34042078ee78c0c007f5085db4c"
+yargs@^10.0.3:
+  version "10.0.3"
+  resolved "https://registry.npmjs.org/yargs/-/yargs-10.0.3.tgz#6542debd9080ad517ec5048fb454efe9e4d4aaae"
   dependencies:
-    camelcase "^4.1.0"
     cliui "^3.2.0"
     decamelize "^1.1.1"
+    find-up "^2.1.0"
     get-caller-file "^1.0.1"
     os-locale "^2.0.0"
-    read-pkg-up "^2.0.0"
     require-directory "^2.1.1"
     require-main-filename "^1.0.1"
     set-blocking "^2.0.0"
     string-width "^2.0.0"
     which-module "^2.0.0"
     y18n "^3.2.1"
-    yargs-parser "^7.0.0"
+    yargs-parser "^8.0.0"
