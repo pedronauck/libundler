@@ -4,6 +4,7 @@ const loadFile = (filepath) => {
   try {
     file = require(filepath)
   } catch (err) {
+    console.log(err)
     file = null
   }
 

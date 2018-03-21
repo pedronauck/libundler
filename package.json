@@ -39,7 +39,7 @@
     "rollup-plugin-sizes": "^0.4.0",
     "rollup-plugin-sourcemaps": "^0.4.2",
     "rollup-plugin-tslint": "^0.1.24",
-    "rollup-plugin-typescript": "^0.8.1",
+    "rollup-plugin-typescript2": "^0.12.0",
     "rollup-plugin-uglify": "^2.0.1",
     "shelljs": "^0.7.8",
     "tslint": "^5.7.0",
