@@ -95,7 +95,9 @@ const PLUGINS = [
     preferBuiltins: true,
   }),
   commonjs({
-    namedExports: CONFIG.namedExports || {},
+    ...(CONFIG.namedExports && {
+      namedExports: CONFIG.namedExports,
+    }),
   }),
   HAS_JS && HAS_ESLINT && eslint({ exclude: '/**/node_modules/**' }),
   HAS_TS && tslint({ exclude: '/**/node_modules/**' }),
