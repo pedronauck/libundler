@@ -8,6 +8,7 @@ const micromatch = require('micromatch')
 const async = require('neo-async')
 const emoji = require('node-emoji')
 const logUpdate = require('log-update')
+const findup = require('find-up')
 const { argv } = require('yargs')
 const { rm, exit, test, ls } = require('shelljs')
 const { rollup, watch } = require('rollup')
@@ -65,10 +66,11 @@ const HAS_JS = EXTENSIONS.some(e => JS_REGEXP.test(e))
 const DEFAULT_EXCLUDE = CONFIG.exclude || []
 const DEFAULT_INCLUDE = CONFIG.include || [EXTS_GLOB]
 
+const HAS_ESLINT = findup.sync('.eslintrc')
+const HAS_BABEL = findup.sync('.babelrc')
+
 const resolveWithCtx = p => path.resolve(CONTEXT, p)
-
 const filterSelectedExts = filepath => micromatch.isMatch(filepath, EXTS_GLOB)
-
 const filterExclude = filepath => !micromatch.any(filepath, DEFAULT_EXCLUDE)
 
 const INCLUDE = DEFAULT_INCLUDE.map(resolveWithCtx)
@@ -95,10 +97,10 @@ const PLUGINS = [
   commonjs({
     namedExports: CONFIG.namedExports || {},
   }),
-  HAS_JS && eslint({ exclude: '/**/node_modules/**' }),
+  HAS_JS && HAS_ESLINT && eslint({ exclude: '/**/node_modules/**' }),
   HAS_TS && tslint({ exclude: '/**/node_modules/**' }),
   HAS_TS && typescript({ typescript: require('typescript') }),
-  babel({ exclude: '/**/node_modules/**' }),
+  HAS_BABEL && babel({ exclude: '/**/node_modules/**' }),
   replace({ 'process.env.NODE_ENV': JSON.stringify(ENV) }),
   sourceMaps(),
   IS_PROD && uglify(UGLIFY_OPTS, minify),
