@@ -14,7 +14,7 @@ const pe = new PrettyError()
 const symbols = require('./symbols')
 const filenameReplace = require('./filename-replace')
 
-const HAS_GZIP = argv.gzip && argv.p
+const HAS_GZIP = argv.compress
 const ROOT_PATH = fs.realpathSync(process.cwd())
 
 const placeholder = text => c.gray(`${text}:`)

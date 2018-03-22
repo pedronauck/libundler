@@ -38,32 +38,31 @@ const PKG_JSON = getPkgJson(ROOT_PATH)
 const CONFIG = loadFile(argv.config)
 const CONTEXT = CONFIG.context || ROOT_PATH
 const EXTENSIONS = CONFIG.extensions || argv.extensions
-const IS_PROD = CONFIG.production || argv.p || ENV === 'production'
-
-const HAS_SOURCEMAPS = argv.sourcemap
-const HAS_GZIP = argv.gzip
-const DEST = argv.dest
-
-const EXTS = EXTENSIONS.join(',').replace(/\./gm, '')
-const EXTS_GLOB = `**/*.{${EXTS}}`
-const HAS_TS = EXTENSIONS.some(e => /.(ts|tsx)$/.test(e))
 const DEFAULT_EXCLUDE = CONFIG.exclude || []
+
+const DEST = argv.dest
+const TARGET = argv.target
+const SOURCEMAP = argv.sourcemap
+const IS_PROD = argv.compress || ENV === 'production'
+
+const EXTS_GLOB = `**/*.{${EXTENSIONS.join(',').replace(/\./gm, '')}}`
+const HAS_TS = EXTENSIONS.some(e => /.(ts|tsx)$/.test(e))
 
 const FORMATS = {
   cjs: {
     filename: `[name].${argv.hash ? '[hash].' : ''}js`,
     format: 'cjs',
-    sourcemap: HAS_SOURCEMAPS,
+    sourcemap: SOURCEMAP,
   },
   es: {
     filename: `[name].${argv.hash ? '[hash].' : ''}m.js`,
     format: 'es',
-    sourcemap: HAS_SOURCEMAPS,
+    sourcemap: SOURCEMAP,
   },
   umd: {
     filename: `[name].${argv.hash ? '[hash].' : ''}umd.js`,
     format: 'cjs',
-    sourcemap: HAS_SOURCEMAPS,
+    sourcemap: SOURCEMAP,
   },
 }
 
@@ -86,17 +85,20 @@ const getBabelRc = () => {
   try {
     babelrc = JSON.parse(fs.readFileSync(findup.sync('.babelrc')))
   } catch (err) {
-    babelrc = {}
+    babelrc = null
   }
 
   return babelrc
 }
 
+const BABELRC = getBabelRc()
 const ENTRIES = getEntries()
 const OUTPUT = argv.formats.map(format => FORMATS[format])
 
 const plugins = [
-  replace({ 'process.env.NODE_ENV': JSON.stringify(ENV) }),
+  replace({
+    'process.env.NODE_ENV': JSON.stringify(ENV),
+  }),
   HAS_TS &&
     typescript({
       typescript: require('typescript'),
@@ -106,9 +108,9 @@ const plugins = [
         },
       },
     }),
-  !HAS_TS &&
+  BABELRC &&
     babel(
-      merge(getBabelRc(), {
+      merge(BABELRC, {
         exclude: 'node_modules/**',
         plugins: ['@babel/plugin-external-helpers'],
         externalHelpers: true,
@@ -119,11 +121,12 @@ const plugins = [
     module: true,
     main: true,
     preferBuiltins: true,
+    browser: TARGET !== 'node',
   }),
   commonjs({
     include: 'node_modules/**',
   }),
-  HAS_SOURCEMAPS && sourceMaps(),
+  SOURCEMAP && sourceMaps(),
   IS_PROD &&
     uglify(
       {
@@ -141,7 +144,7 @@ const plugins = [
       },
       minify
     ),
-  IS_PROD && HAS_GZIP && gzip(),
+  IS_PROD && gzip(),
 ]
 
 const external = ['dns', 'fs', 'path', 'url'].concat(

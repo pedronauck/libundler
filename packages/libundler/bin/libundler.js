@@ -14,28 +14,18 @@ const defineArgs = yargs => {
   yargs.positional('extensions', {
     alias: ['e', 'exts'],
     default: ['.js', '.jsx'],
-    description: 'Allowed extenstions to parse',
   })
   yargs.positional('formats', {
     alias: 'f',
     default: ['umd', 'cjs', 'es'],
   })
-  yargs.positional('jsx', {
-    default: 'h',
+  yargs.positional('target', {
+    default: 'node',
   })
-  yargs.positional('hash', {
-    default: false,
-    description: 'Add a hash md5 on your build files',
-  })
-  yargs.positional('gzip', {
+  yargs.positional('compress', {
     default: false,
   })
   yargs.positional('sourcemap', {
-    alias: 's',
-    default: false,
-  })
-  yargs.positional('production', {
-    alias: 'p',
     default: false,
   })
 }
