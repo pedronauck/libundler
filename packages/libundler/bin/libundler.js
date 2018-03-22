@@ -32,9 +32,14 @@ const defineArgs = yargs => {
     default: fs.realpathSync(process.cwd()),
   })
   yargs.positional('compress', {
+    alias: 's',
+    default: false,
+  })
+  yargs.positional('hash', {
     default: false,
   })
   yargs.positional('sourcemap', {
+    alias: 'c',
     default: false,
   })
 }
