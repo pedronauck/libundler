@@ -1,7 +1,7 @@
 {
   "name": "libundler-example-basic",
   "description": "Libundler basic example",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "license": "MIT",
   "main": "dist/index.js",
   "umd:main": "dist/index.umd.js",
@@ -20,6 +20,6 @@
     "@babel/core": "7.0.0-beta.42",
     "@babel/preset-env": "^7.0.0-beta.42",
     "@babel/preset-react": "^7.0.0-beta.42",
-    "libundler": "^1.0.1"
+    "libundler": "^1.0.2"
   }
 }
