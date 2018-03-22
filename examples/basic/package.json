@@ -1,0 +1,24 @@
+{
+  "name": "libundler-example-basic",
+  "description": "Libundler basic example",
+  "version": "0.0.8",
+  "license": "MIT",
+  "main": "dist/index.js",
+  "umd:main": "dist/index.umd.js",
+  "module": "dist/index.m.js",
+  "source": "src/index.jsx",
+  "scripts": {
+    "dev": "libundler watch",
+    "build": "libundler build -s",
+    "build:prod": "yarn run build -p --hash --gzip"
+  },
+  "peerDependencies": {
+    "react": "^16.2.0",
+    "react-dom": "^16.2.0"
+  },
+  "devDependencies": {
+    "babel-preset-env": "^1.6.1",
+    "babel-preset-react": "^6.24.1",
+    "libundler": "^0.0.8"
+  }
+}
