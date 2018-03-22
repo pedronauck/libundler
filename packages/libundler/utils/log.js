@@ -14,8 +14,8 @@ const pe = new PrettyError()
 const symbols = require('./symbols')
 const filenameReplace = require('./filename-replace')
 
+const ROOT_PATH = argv.cwd
 const HAS_GZIP = argv.compress
-const ROOT_PATH = fs.realpathSync(process.cwd())
 
 const placeholder = text => c.gray(`${text}:`)
 const getFilesize = file => filesize(fs.statSync(file).size)
@@ -51,8 +51,8 @@ exports.compiling = relative => {
   }, 80)
 }
 
-exports.success = ({ ctx, dest, input, output, warning }) => {
-  const file = filenameReplace(ctx, input, output.filename)
+exports.success = ({ dest, input, output, warning }) => {
+  const file = filenameReplace(ROOT_PATH, input, output.filename)
   const outputFile = path.join(dest, file)
 
   const successTitle = `${symbols.success}  ${c.green.bold(

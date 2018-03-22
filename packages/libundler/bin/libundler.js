@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 /* eslint no-unused-expressions: 0 */
 
+const fs = require('fs')
 const yargs = require('yargs')
 
 const defineArgs = yargs => {
@@ -11,16 +12,24 @@ const defineArgs = yargs => {
     alias: 'd',
     default: 'dist',
   })
-  yargs.positional('extensions', {
-    alias: ['e', 'exts'],
-    default: ['.js', '.jsx'],
+  yargs.positional('exclude', {
+    default: [],
+    array: true,
+  })
+  yargs.positional('external', {
+    default: [],
+    array: true,
+  })
+  yargs.positional('target', {
+    default: 'node',
   })
   yargs.positional('formats', {
     alias: 'f',
     default: ['umd', 'cjs', 'es'],
+    array: true,
   })
-  yargs.positional('target', {
-    default: 'node',
+  yargs.positional('cwd', {
+    default: fs.realpathSync(process.cwd()),
   })
   yargs.positional('compress', {
     default: false,
@@ -32,10 +41,10 @@ const defineArgs = yargs => {
 
 yargs
   .usage('$0 <cmd> [args]')
-  .command('build', 'Build once and exit', defineArgs, () => {
+  .command('build [opts]', 'Build once and exit', defineArgs, () => {
     require('../scripts/build')()
   })
-  .command('watch', 'Rebuilds on any change', defineArgs, () => {
+  .command('watch [opts]', 'Rebuilds on any change', defineArgs, () => {
     require('../scripts/build')(true)
   })
   .demandCommand()

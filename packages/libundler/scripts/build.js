@@ -24,31 +24,24 @@ const typescript = require('rollup-plugin-typescript2')
 const { minify } = require('uglify-es')
 
 const log = require('../utils/log')
-const loadFile = require('../utils/load-file')
 const invariant = require('../utils/invariant')
 const filenameReplace = require('../utils/filename-replace')
 const getPkgJson = require('../utils/get-pkg-json')
 
 Promise.coroutine.addYieldHandler(bluebirdCo.toPromise)
 
+const PKG_JSON = getPkgJson()
 const ENV = process.env.NODE_ENV
-const ROOT_PATH = fs.realpathSync(process.cwd())
-const PKG_JSON = getPkgJson(ROOT_PATH)
-
-const CONFIG = loadFile(argv.config)
-const CONTEXT = CONFIG.context || ROOT_PATH
-const EXTENSIONS = CONFIG.extensions || argv.extensions
-const DEFAULT_EXCLUDE = CONFIG.exclude || []
-
+const EXCLUDE = argv.exclude
+const CONTEXT = argv.cwd
 const DEST = argv.dest
 const TARGET = argv.target
 const SOURCEMAP = argv.sourcemap
+const FORMATS = argv.formats
+const EXTERNAL = argv.external
 const IS_PROD = argv.compress || ENV === 'production'
 
-const EXTS_GLOB = `**/*.{${EXTENSIONS.join(',').replace(/\./gm, '')}}`
-const HAS_TS = EXTENSIONS.some(e => /.(ts|tsx)$/.test(e))
-
-const FORMATS = {
+const FORMATS_MAP = {
   cjs: {
     filename: `[name].${argv.hash ? '[hash].' : ''}js`,
     format: 'cjs',
@@ -67,16 +60,13 @@ const FORMATS = {
 }
 
 const resolveWithCtx = p => path.resolve(CONTEXT, p)
-const filterSelectedExts = filepath => micromatch.isMatch(filepath, EXTS_GLOB)
-const filterExclude = filepath => !micromatch.any(filepath, DEFAULT_EXCLUDE)
+const filterExclude = filepath => !micromatch.any(filepath, EXCLUDE)
 
 const getEntries = () => {
-  const entries = PKG_JSON.source || argv.source || [EXTS_GLOB]
+  const entries = PKG_JSON.source || argv.source
   const arr = Array.isArray(entries) ? entries : [entries]
 
-  return ls(arr.map(resolveWithCtx))
-    .filter(filterExclude)
-    .filter(filterSelectedExts)
+  return ls(arr.map(resolveWithCtx)).filter(filterExclude)
 }
 
 const getBabelRc = () => {
@@ -91,15 +81,17 @@ const getBabelRc = () => {
   return babelrc
 }
 
+const hasTypescript = entries =>
+  entries.map(entry => path.extname(entry)).some(ext => /.(ts|tsx)$/.test(ext))
+
 const BABELRC = getBabelRc()
 const ENTRIES = getEntries()
-const OUTPUT = argv.formats.map(format => FORMATS[format])
 
 const plugins = [
   replace({
     'process.env.NODE_ENV': JSON.stringify(ENV),
   }),
-  HAS_TS &&
+  Boolean(hasTypescript(ENTRIES)) &&
     typescript({
       typescript: require('typescript'),
       tsconfigDefaults: {
@@ -108,7 +100,7 @@ const plugins = [
         },
       },
     }),
-  BABELRC &&
+  Boolean(BABELRC) &&
     babel(
       merge(BABELRC, {
         exclude: 'node_modules/**',
@@ -147,9 +139,11 @@ const plugins = [
   IS_PROD && gzip(),
 ]
 
+const OUTPUT = FORMATS.map(format => FORMATS_MAP[format])
+
 const external = ['dns', 'fs', 'path', 'url'].concat(
   Object.keys(PKG_JSON.peerDependencies || {}),
-  CONFIG.external || []
+  EXTERNAL
 )
 
 let warningList = {}
@@ -174,7 +168,6 @@ const getOutputOpts = (
     )} format`
   )
 
-  const globals = CONFIG.globals || {}
   const file = path.join(DEST, filenameReplace(CONTEXT, input, filename))
 
   return {
@@ -182,13 +175,12 @@ const getOutputOpts = (
     format,
     sourcemap,
     file,
-    globals,
     exports: 'named',
   }
 }
 
 const clean = done => {
-  const dest = path.resolve(ROOT_PATH, DEST)
+  const dest = path.resolve(CONTEXT, DEST)
 
   logUpdate(`${emoji.get(':recycle:')}  Cleaning old files...`)
   test('-d', dest) && rm('-rf', dest)
@@ -197,7 +189,7 @@ const clean = done => {
 }
 
 const buildEntry = Promise.coroutine(function*(input) {
-  const relative = path.relative(ROOT_PATH, input)
+  const relative = path.relative(CONTEXT, input)
 
   for (const output of OUTPUT) {
     const compiling = log.compiling(relative)
@@ -210,7 +202,6 @@ const buildEntry = Promise.coroutine(function*(input) {
       log.success({
         input,
         output,
-        ctx: CONTEXT,
         dest: DEST,
         warning: warningList[input],
       })

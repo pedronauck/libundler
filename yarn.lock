@@ -581,6 +581,21 @@
   version "0.0.38"
   resolved "https://registry.npmjs.org/@types/estree/-/estree-0.0.38.tgz#c1be40aa933723c608820a99a373a16d215a1ca2"
 
+"@types/node@*":
+  version "9.4.7"
+  resolved "https://registry.npmjs.org/@types/node/-/node-9.4.7.tgz#57d81cd98719df2c9de118f2d5f3b1120dcd7275"
+
+"@types/react-dom@^16.0.4":
+  version "16.0.4"
+  resolved "https://registry.npmjs.org/@types/react-dom/-/react-dom-16.0.4.tgz#2e8fd45f5443780ed49bf2cdd9809e6091177a7d"
+  dependencies:
+    "@types/node" "*"
+    "@types/react" "*"
+
+"@types/react@*", "@types/react@^16.0.40":
+  version "16.0.40"
+  resolved "https://registry.npmjs.org/@types/react/-/react-16.0.40.tgz#caabc2296886f40b67f6fc80f0f3464476461df9"
+
 JSONStream@^1.0.4:
   version "1.3.2"
   resolved "https://registry.npmjs.org/JSONStream/-/JSONStream-1.3.2.tgz#c102371b6ec3a7cf3b847ca00c20bb0fce4c6dea"

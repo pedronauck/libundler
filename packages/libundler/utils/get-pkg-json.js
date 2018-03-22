@@ -1,23 +1,13 @@
 const fs = require('fs')
-const invariant = require('invariant')
-const path = require('path')
-const { exit } = require('shelljs')
+const findup = require('find-up')
 
-const getPkgJson = rootPath => {
+const getPkgJson = () => {
   let pkg
 
   try {
-    pkg = JSON.parse(
-      fs.readFileSync(path.resolve(rootPath, 'package.json'), 'utf-8')
-    )
+    pkg = JSON.parse(fs.readFileSync(findup.sync('package.json')))
   } catch (err) {
-    invariant(
-      true,
-      `no package.json found. Assuming a pkg.name of "${path.basename(
-        rootPath
-      )}".`
-    )
-    exit(1)
+    pkg = null
   }
 
   return pkg
