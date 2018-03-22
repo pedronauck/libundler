@@ -3,13 +3,10 @@
   "license": "MIT",
   "scripts": {
     "bs": "lerna bootstrap",
-    "np": "lerna publish --conventional-commits",
+    "np": "lerna publish",
     "format": "prettier-eslint --write \"packages/**/*.{js,ts,tsx}\""
   },
-  "workspaces": [
-    "packages/**",
-    "examples/**"
-  ],
+  "workspaces": ["packages/**", "examples/**"],
   "devDependencies": {
     "babel-eslint": "^7.2.3",
     "eslint": "^4.8.0",
