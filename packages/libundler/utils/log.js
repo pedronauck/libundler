@@ -1,4 +1,3 @@
-/* eslint max-params: 0 */
 const { argv } = require('yargs')
 const { exit } = require('shelljs')
 const fs = require('fs')
@@ -17,13 +16,10 @@ const filenameReplace = require('./filename-replace')
 
 const HAS_GZIP = argv.gzip && argv.p
 
-const placeholder = (text) =>
-  c.gray(`${text}:`)
+const placeholder = text => c.gray(`${text}:`)
+const getFilesize = file => filesize(fs.statSync(file).size)
 
-const getFilesize = (file) =>
-  filesize(fs.statSync(file).size)
-
-const getGZipFilesize = (file) =>
+const getGZipFilesize = file =>
   filesize(gzip.sync(fs.readFileSync(file, 'utf-8')))
 
 const logWarning = ({ loc, frame, message }) => {
@@ -44,25 +40,31 @@ const logWarning = ({ loc, frame, message }) => {
   }
 }
 
-exports.compiling = (relative) => {
+exports.compiling = relative => {
   const frames = ['⠋', '⠙', '⠹', '⠸', '⠼', '⠴', '⠦', '⠧', '⠇', '⠏']
   let i = 0
 
   return setInterval(() => {
-    const frame = frames[i = ++i % frames.length]
+    const frame = frames[(i = ++i % frames.length)]
     logUpdate(`${c.dim(frame)} Compiling ${c.cyan.bold(relative)}...`)
   }, 80)
 }
 
-exports.success = (root, context, input, output, warning) => {
+exports.success = ({ root, context, dest, input, output, warning }) => {
   const file = filenameReplace(context, input, output.filename)
-  const outputFile = path.join(output.dest, file)
+  const outputFile = path.join(dest, file)
 
-  const successTitle = `${symbols.success}  ${c.green.bold('Successfully compiled:')}`
-  const warningTitle = `${symbols.warning}  ${c.yellow.bold('Compiled with warnings:')}`
+  const successTitle = `${symbols.success}  ${c.green.bold(
+    'Successfully compiled:'
+  )}`
+  const warningTitle = `${symbols.warning}  ${c.yellow.bold(
+    'Compiled with warnings:'
+  )}`
   const title = warning ? warningTitle : successTitle
   const size = `${placeholder('size')} ${getFilesize(outputFile)}`
-  const gzip = HAS_GZIP ? ` | ${placeholder('gzip')} ${getGZipFilesize(outputFile)}` : ''
+  const gzip = HAS_GZIP
+    ? ` | ${placeholder('gzip')} ${getGZipFilesize(outputFile)}`
+    : ''
   const sizes = c.gray.dim(`(${size}${gzip})`)
 
   const msg = `${title} ${c.cyan(path.relative(root, outputFile))} ${sizes}`
@@ -72,9 +74,9 @@ exports.success = (root, context, input, output, warning) => {
   logUpdate.done()
 }
 
-exports.watch = (context) => (ev) => {
+exports.watch = context => ev => {
   const file = ev.input && path.relative(context, ev.input)
-  const evType = (code) => ev.code === code
+  const evType = code => ev.code === code
 
   switch (ev.code) {
     case 'START':
@@ -82,10 +84,16 @@ exports.watch = (context) => (ev) => {
       logUpdate.done()
       break
     case 'BUNDLE_START':
-      logUpdate(`${c.cyan.bold(symbols.arrow)}  ${c.cyan.bold('Start compiling:')} ${file}`)
+      logUpdate(
+        `${c.cyan.bold(symbols.arrow)}  ${c.cyan.bold(
+          'Start compiling:'
+        )} ${file}`
+      )
       break
     case 'BUNDLE_END':
-      logUpdate(`${symbols.success}  ${c.green.bold('Finished compiling:')} ${file}`)
+      logUpdate(
+        `${symbols.success}  ${c.green.bold('Finished compiling:')} ${file}`
+      )
       logUpdate.done()
       break
     case 'END':

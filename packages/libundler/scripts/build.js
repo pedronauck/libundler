@@ -9,112 +9,152 @@ const async = require('neo-async')
 const emoji = require('node-emoji')
 const logUpdate = require('log-update')
 const findup = require('find-up')
+const merge = require('deepmerge')
 const { argv } = require('yargs')
 const { rm, exit, test, ls } = require('shelljs')
 const { rollup, watch } = require('rollup')
 const babel = require('rollup-plugin-babel')
 const commonjs = require('rollup-plugin-commonjs')
-const eslint = require('rollup-plugin-eslint')
 const gzip = require('rollup-plugin-gzip')
-const resolve = require('rollup-plugin-node-resolve')
+const nodeResolve = require('rollup-plugin-node-resolve')
 const sourceMaps = require('rollup-plugin-sourcemaps')
 const replace = require('rollup-plugin-replace')
 const uglify = require('rollup-plugin-uglify')
 const typescript = require('rollup-plugin-typescript2')
-const tslint = require('rollup-plugin-tslint')
 const { minify } = require('uglify-es')
 
 const log = require('../utils/log')
 const loadFile = require('../utils/load-file')
 const invariant = require('../utils/invariant')
 const filenameReplace = require('../utils/filename-replace')
+const getPkgJson = require('../utils/get-pkg-json')
 
 Promise.coroutine.addYieldHandler(bluebirdCo.toPromise)
 
-invariant(
-  !test('-f', argv.config),
-  `Your project must contain a ${c.bold('lib configuration')} file`,
-)
-
-const isFn = val => val instanceof Function
-
 const ENV = process.env.NODE_ENV
 const ROOT_PATH = fs.realpathSync(process.cwd())
+const PKG_JSON = getPkgJson(ROOT_PATH)
+
 const CONFIG = loadFile(argv.config)
-
-invariant(
-  !CONFIG.output && isFn(CONFIG.OUTPUT),
-  `Your config file need to contains a valid ${c.bold('output')} prop`,
-)
-
 const CONTEXT = CONFIG.context || ROOT_PATH
-const OUTPUT = CONFIG.output
 const EXTENSIONS = CONFIG.extensions || argv.extensions
-const EXTERNAL = CONFIG.external || []
-const GLOBALS = CONFIG.globals || {}
-const HAS_GZIP = argv.gzip
 const IS_PROD = CONFIG.production || argv.p || ENV === 'production'
-const WATCH = argv.watch
 
-const JS_REGEXP = /.(js|jsx)$/
-const TS_REGEXP = /.(ts|tsx)$/
+const HAS_SOURCEMAPS = argv.sourcemap
+const HAS_GZIP = argv.gzip
+const DEST = argv.dest
 
 const EXTS = EXTENSIONS.join(',').replace(/\./gm, '')
 const EXTS_GLOB = `**/*.{${EXTS}}`
-const HAS_TS = EXTENSIONS.some(e => TS_REGEXP.test(e))
-const HAS_JS = EXTENSIONS.some(e => JS_REGEXP.test(e))
+const HAS_TS = EXTENSIONS.some(e => /.(ts|tsx)$/.test(e))
 const DEFAULT_EXCLUDE = CONFIG.exclude || []
-const DEFAULT_INCLUDE = CONFIG.include || [EXTS_GLOB]
 
-const HAS_ESLINT = findup.sync('.eslintrc')
-const HAS_BABEL = findup.sync('.babelrc')
+const FORMATS = {
+  cjs: {
+    filename: `[name].${argv.hash ? '[hash].' : ''}js`,
+    format: 'cjs',
+    sourcemap: HAS_SOURCEMAPS,
+  },
+  es: {
+    filename: `[name].${argv.hash ? '[hash].' : ''}m.js`,
+    format: 'es',
+    sourcemap: HAS_SOURCEMAPS,
+  },
+  umd: {
+    filename: `[name].${argv.hash ? '[hash].' : ''}umd.js`,
+    format: 'cjs',
+    sourcemap: HAS_SOURCEMAPS,
+  },
+}
 
 const resolveWithCtx = p => path.resolve(CONTEXT, p)
 const filterSelectedExts = filepath => micromatch.isMatch(filepath, EXTS_GLOB)
 const filterExclude = filepath => !micromatch.any(filepath, DEFAULT_EXCLUDE)
 
-const INCLUDE = DEFAULT_INCLUDE.map(resolveWithCtx)
-const FILES = ls(INCLUDE)
-  .filter(filterExclude)
-  .filter(filterSelectedExts)
+const getEntries = () => {
+  const entries = PKG_JSON.source || argv.source || [EXTS_GLOB]
+  const arr = Array.isArray(entries) ? entries : [entries]
 
-const UGLIFY_OPTS = {
-  compress: {
-    pure_getters: true,
-    unsafe: true,
-    unsafe_comps: true,
-    warnings: false,
-  },
+  return ls(arr.map(resolveWithCtx))
+    .filter(filterExclude)
+    .filter(filterSelectedExts)
 }
 
-const PLUGINS = [
-  resolve({
-    main: true,
+const getBabelRc = () => {
+  let babelrc
+
+  try {
+    babelrc = JSON.parse(fs.readFileSync(findup.sync('.babelrc')))
+  } catch (err) {
+    babelrc = {}
+  }
+
+  return babelrc
+}
+
+const ENTRIES = getEntries()
+const OUTPUT = argv.formats.map(format => FORMATS[format])
+
+const plugins = [
+  replace({ 'process.env.NODE_ENV': JSON.stringify(ENV) }),
+  HAS_TS &&
+    typescript({
+      typescript: require('typescript'),
+      tsconfigDefaults: {
+        compilerOptions: {
+          declaration: true,
+        },
+      },
+    }),
+  !HAS_TS &&
+    babel(
+      merge(getBabelRc(), {
+        exclude: 'node_modules/**',
+        plugins: ['external-helpers'],
+        externalHelpers: true,
+      })
+    ),
+  nodeResolve({
     jsnext: true,
-    extensions: EXTENSIONS,
+    module: true,
+    main: true,
     preferBuiltins: true,
   }),
   commonjs({
-    ...(CONFIG.namedExports && {
-      namedExports: CONFIG.namedExports,
-    }),
+    include: 'node_modules/**',
   }),
-  HAS_JS && HAS_ESLINT && eslint({ exclude: '/**/node_modules/**' }),
-  HAS_TS && tslint({ exclude: '/**/node_modules/**' }),
-  HAS_TS && typescript({ typescript: require('typescript') }),
-  HAS_BABEL && babel({ exclude: '/**/node_modules/**' }),
-  replace({ 'process.env.NODE_ENV': JSON.stringify(ENV) }),
-  sourceMaps(),
-  IS_PROD && uglify(UGLIFY_OPTS, minify),
+  HAS_SOURCEMAPS && sourceMaps(),
+  IS_PROD &&
+    uglify(
+      {
+        warnings: true,
+        ecma: 5,
+        output: {
+          comments: false,
+        },
+        compress: {
+          pure_getters: true,
+          unsafe: true,
+          unsafe_comps: true,
+          warnings: false,
+        },
+      },
+      minify
+    ),
   IS_PROD && HAS_GZIP && gzip(),
 ]
+
+const external = ['dns', 'fs', 'path', 'url'].concat(
+  Object.keys(PKG_JSON.peerDependencies || {}),
+  CONFIG.external || []
+)
 
 let warningList = {}
 
 const getInputOpts = input => ({
   input,
-  plugins: PLUGINS,
-  external: EXTERNAL,
+  plugins,
+  external,
   onwarn(warning) {
     warningList[input] = warning
   },
@@ -122,39 +162,38 @@ const getInputOpts = input => ({
 
 const getOutputOpts = (
   input,
-  { name, dest, filename, format = 'cjs', sourcemap = false },
+  { name, filename, format = 'cjs', sourcemap = false }
 ) => {
   invariant(
     format === 'umd' && !name,
     `Please set a ${c.bold('name')} if your bundle has a ${c.bold(
-      'UMD',
-    )} format`,
+      'UMD'
+    )} format`
   )
 
-  const file = path.join(dest, filenameReplace(CONTEXT, input, filename))
+  const globals = CONFIG.globals || {}
+  const file = path.join(DEST, filenameReplace(CONTEXT, input, filename))
 
   return {
     name,
     format,
     sourcemap,
     file,
-    globals: GLOBALS,
+    globals,
     exports: 'named',
   }
 }
 
 const clean = done => {
+  const dest = path.resolve(ROOT_PATH, DEST)
+
   logUpdate(`${emoji.get(':recycle:')}  Cleaning old files...`)
-
-  for (const output of OUTPUT) {
-    test('-d', output.dest) && rm('-rf', output.dest)
-  }
-
+  test('-d', dest) && rm('-rf', dest)
   logUpdate.done()
   done()
 }
 
-const build = Promise.coroutine(function*(input) {
+const buildEntry = Promise.coroutine(function*(input) {
   const relative = path.relative(ROOT_PATH, input)
 
   for (const output of OUTPUT) {
@@ -165,7 +204,14 @@ const build = Promise.coroutine(function*(input) {
     try {
       const bundle = yield rollup(inputOpts)
       yield bundle.write(outputOpts)
-      log.success(ROOT_PATH, CONTEXT, input, output, warningList[input])
+      log.success({
+        root: ROOT_PATH,
+        ctx: CONTEXT,
+        dest: DEST,
+        input,
+        output,
+        warning: warningList[input],
+      })
     } catch (err) {
       console.log(c.red(err))
       exit(1)
@@ -179,12 +225,12 @@ const watchOpts = input => ({
   ...getInputOpts(input),
   output: OUTPUT.map(output => getOutputOpts(input, output)),
   watch: {
-    exclude: '/**/node_modules/**',
+    exclude: 'node_modules/**',
   },
 })
 
 const watchLib = done => {
-  const opts = FILES.map(watchOpts)
+  const opts = ENTRIES.map(watchOpts)
   const watcher = watch(opts)
 
   watcher.on('event', log.watch(CONTEXT))
@@ -194,9 +240,10 @@ const watchLib = done => {
 const buildLib = done => {
   logUpdate(`${emoji.get(':rocket:')}  Start compiling...`)
 
-  for (const file of FILES) build(file)
+  for (const entry of ENTRIES) buildEntry(entry)
   logUpdate.done()
   done()
 }
 
-async.series([clean, WATCH ? watchLib : buildLib])
+module.exports = (watch = false) =>
+  async.series([clean, watch ? watchLib : buildLib])

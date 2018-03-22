@@ -24,3 +24,4 @@ typings/
 *.tgz
 .yarn-integrity
 .env
+dist
