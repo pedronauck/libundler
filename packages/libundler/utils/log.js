@@ -15,6 +15,7 @@ const symbols = require('./symbols')
 const filenameReplace = require('./filename-replace')
 
 const HAS_GZIP = argv.gzip && argv.p
+const ROOT_PATH = fs.realpathSync(process.cwd())
 
 const placeholder = text => c.gray(`${text}:`)
 const getFilesize = file => filesize(fs.statSync(file).size)
@@ -50,8 +51,8 @@ exports.compiling = relative => {
   }, 80)
 }
 
-exports.success = ({ root, context, dest, input, output, warning }) => {
-  const file = filenameReplace(context, input, output.filename)
+exports.success = ({ ctx, dest, input, output, warning }) => {
+  const file = filenameReplace(ctx, input, output.filename)
   const outputFile = path.join(dest, file)
 
   const successTitle = `${symbols.success}  ${c.green.bold(
@@ -67,7 +68,9 @@ exports.success = ({ root, context, dest, input, output, warning }) => {
     : ''
   const sizes = c.gray.dim(`(${size}${gzip})`)
 
-  const msg = `${title} ${c.cyan(path.relative(root, outputFile))} ${sizes}`
+  const msg = `${title} ${c.cyan(
+    path.relative(ROOT_PATH, outputFile)
+  )} ${sizes}`
 
   logUpdate(msg)
   if (warning) logWarning(warning)

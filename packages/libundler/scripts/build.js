@@ -205,11 +205,10 @@ const buildEntry = Promise.coroutine(function*(input) {
       const bundle = yield rollup(inputOpts)
       yield bundle.write(outputOpts)
       log.success({
-        root: ROOT_PATH,
-        ctx: CONTEXT,
-        dest: DEST,
         input,
         output,
+        ctx: CONTEXT,
+        dest: DEST,
         warning: warningList[input],
       })
     } catch (err) {
