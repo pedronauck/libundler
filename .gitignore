@@ -24,4 +24,5 @@ typings/
 *.tgz
 .yarn-integrity
 .env
+.rpt2_cache
 dist
