@@ -31,7 +31,7 @@ Promise.coroutine.addYieldHandler(bluebirdCo.toPromise)
 const ENV = process.env.NODE_ENV
 
 const PKG_JSON = loadConfigFile('package')
-const BABELRC = loadConfigFile('babel')
+const BABELRC = loadConfigFile('babel', null)
 const CONFIG = loadConfigFile('lib', {
   dest: argv.dest,
   exclude: argv.exclude,

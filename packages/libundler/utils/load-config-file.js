@@ -29,7 +29,7 @@ const loadConfigFile = (name, defaultConfig = {}) => {
     file = defaultConfig
   }
 
-  return merge(defaultConfig, file)
+  return defaultConfig !== null ? merge(defaultConfig, file) : file
 }
 
 module.exports = loadConfigFile
