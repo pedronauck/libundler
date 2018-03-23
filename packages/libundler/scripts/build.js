@@ -47,8 +47,6 @@ const CONFIG = loadConfigFile('lib', {
   commonjs: {},
 })
 
-console.log(CONFIG)
-
 const DEST = CONFIG.dest
 const EXCLUDE = CONFIG.exclude
 const CONTEXT = CONFIG.cwd
