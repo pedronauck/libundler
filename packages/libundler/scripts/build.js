@@ -1,5 +1,4 @@
 /* eslint camelcase: 0, no-unreachable: 0 */
-const fs = require('fs')
 const path = require('path')
 const Promise = require('bluebird')
 const bluebirdCo = require('bluebird-co')
@@ -8,7 +7,6 @@ const micromatch = require('micromatch')
 const async = require('neo-async')
 const emoji = require('node-emoji')
 const logUpdate = require('log-update')
-const findup = require('find-up')
 const merge = require('deepmerge')
 const { argv } = require('yargs')
 const { rm, exit, test, ls } = require('shelljs')
@@ -26,38 +24,61 @@ const { minify } = require('uglify-es')
 const log = require('../utils/log')
 const invariant = require('../utils/invariant')
 const filenameReplace = require('../utils/filename-replace')
-const getPkgJson = require('../utils/get-pkg-json')
+const loadConfigFile = require('../utils/load-config-file')
 
 Promise.coroutine.addYieldHandler(bluebirdCo.toPromise)
 
-const PKG_JSON = getPkgJson()
 const ENV = process.env.NODE_ENV
-const EXCLUDE = argv.exclude
-const CONTEXT = argv.cwd
-const DEST = argv.dest
-const TARGET = argv.target
-const SOURCEMAP = argv.sourcemap
-const FORMATS = argv.formats
-const EXTERNAL = argv.external
-const IS_PROD = argv.compress || ENV === 'production'
+
+const PKG_JSON = loadConfigFile('package')
+const BABELRC = loadConfigFile('babel')
+const CONFIG = loadConfigFile('lib', {
+  dest: argv.dest,
+  exclude: argv.exclude,
+  formats: argv.formats,
+  external: argv.external,
+  target: argv.target,
+  cwd: argv.cwd,
+  sourcemap: argv.sourcemap,
+  compress: argv.compress || ENV === 'production',
+  hash: argv.hash,
+
+  plugins: plugins => plugins,
+  commonjs: {},
+})
+
+console.log(CONFIG)
+
+const DEST = CONFIG.dest
+const EXCLUDE = CONFIG.exclude
+const CONTEXT = CONFIG.cwd
+const FORMATS = CONFIG.formats
+const TARGET = CONFIG.target
+const SOURCEMAP = CONFIG.sourcemap
+const EXTERNAL = CONFIG.external
+const IS_PROD = CONFIG.compress
+const WITH_HASH = CONFIG.hash
 
 const FORMATS_MAP = {
   cjs: {
-    filename: `[name].${argv.hash ? '[hash].' : ''}js`,
+    filename: `[name].${WITH_HASH ? '[hash].' : ''}js`,
     format: 'cjs',
     sourcemap: SOURCEMAP,
   },
   es: {
-    filename: `[name].${argv.hash ? '[hash].' : ''}m.js`,
+    filename: `[name].${WITH_HASH ? '[hash].' : ''}m.js`,
     format: 'es',
     sourcemap: SOURCEMAP,
   },
   umd: {
-    filename: `[name].${argv.hash ? '[hash].' : ''}umd.js`,
+    filename: `[name].${WITH_HASH ? '[hash].' : ''}umd.js`,
     format: 'cjs',
     sourcemap: SOURCEMAP,
   },
 }
+
+const hasTypescript = entries =>
+  entries.map(entry => path.extname(entry)).some(ext => /.(ts|tsx)$/.test(ext))
 
 const resolveWithCtx = p => path.resolve(CONTEXT, p)
 const filterExclude = filepath => !micromatch.any(filepath, EXCLUDE)
@@ -69,29 +90,13 @@ const getEntries = () => {
   return ls(arr.map(resolveWithCtx)).filter(filterExclude)
 }
 
-const getBabelRc = () => {
-  let babelrc
+const entries = getEntries()
 
-  try {
-    babelrc = JSON.parse(fs.readFileSync(findup.sync('.babelrc')))
-  } catch (err) {
-    babelrc = null
-  }
-
-  return babelrc
-}
-
-const hasTypescript = entries =>
-  entries.map(entry => path.extname(entry)).some(ext => /.(ts|tsx)$/.test(ext))
-
-const BABELRC = getBabelRc()
-const ENTRIES = getEntries()
-
-const plugins = [
+const defaultPlugins = [
   replace({
     'process.env.NODE_ENV': JSON.stringify(ENV),
   }),
-  Boolean(hasTypescript(ENTRIES)) &&
+  Boolean(hasTypescript(entries)) &&
     typescript({
       typescript: require('typescript'),
       tsconfigDefaults: {
@@ -115,9 +120,11 @@ const plugins = [
     preferBuiltins: true,
     browser: TARGET !== 'node',
   }),
-  commonjs({
-    include: 'node_modules/**',
-  }),
+  commonjs(
+    merge({}, CONFIG.commonjs, {
+      include: 'node_modules/**',
+    })
+  ),
   SOURCEMAP && sourceMaps(),
   IS_PROD &&
     uglify(
@@ -137,9 +144,14 @@ const plugins = [
       minify
     ),
   IS_PROD && gzip(),
-]
+].filter(f => f)
 
-const OUTPUT = FORMATS.map(format => FORMATS_MAP[format])
+const outputs = FORMATS.map(format => FORMATS_MAP[format])
+
+const plugins =
+  CONFIG.plugins && typeof CONFIG.plugins === 'function'
+    ? CONFIG.plugins(defaultPlugins)
+    : defaultPlugins
 
 const external = ['dns', 'fs', 'path', 'url'].concat(
   Object.keys(PKG_JSON.peerDependencies || {}),
@@ -191,7 +203,7 @@ const clean = done => {
 const buildEntry = Promise.coroutine(function*(input) {
   const relative = path.relative(CONTEXT, input)
 
-  for (const output of OUTPUT) {
+  for (const output of outputs) {
     const compiling = log.compiling(relative)
     const inputOpts = getInputOpts(input)
     const outputOpts = getOutputOpts(input, output)
@@ -216,14 +228,14 @@ const buildEntry = Promise.coroutine(function*(input) {
 
 const watchOpts = input => ({
   ...getInputOpts(input),
-  output: OUTPUT.map(output => getOutputOpts(input, output)),
+  output: outputs.map(output => getOutputOpts(input, output)),
   watch: {
     exclude: 'node_modules/**',
   },
 })
 
 const watchLib = done => {
-  const opts = ENTRIES.map(watchOpts)
+  const opts = entries.map(watchOpts)
   const watcher = watch(opts)
 
   watcher.on('event', log.watch(CONTEXT))
@@ -233,7 +245,7 @@ const watchLib = done => {
 const buildLib = done => {
   logUpdate(`${emoji.get(':rocket:')}  Start compiling...`)
 
-  for (const entry of ENTRIES) buildEntry(entry)
+  for (const entry of entries) buildEntry(entry)
   logUpdate.done()
   done()
 }
