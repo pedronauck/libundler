@@ -28,6 +28,10 @@ const defineArgs = yargs => {
     default: ['umd', 'cjs', 'es'],
     array: true,
   })
+  yargs.positional('typescript', {
+    alias: 'ts',
+    default: false,
+  })
   yargs.positional('cwd', {
     default: fs.realpathSync(process.cwd()),
   })

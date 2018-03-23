@@ -39,6 +39,7 @@ const CONFIG = loadConfigFile('lib', {
   external: argv.external,
   target: argv.target,
   cwd: argv.cwd,
+  typescript: argv.typescript,
   sourcemap: argv.sourcemap,
   compress: argv.compress || ENV === 'production',
   hash: argv.hash,
@@ -69,6 +70,7 @@ const SOURCEMAP = CONFIG.sourcemap
 const EXTERNAL = CONFIG.external
 const IS_PROD = CONFIG.compress
 const WITH_HASH = CONFIG.hash
+const HAS_TS = CONFIG.typescript
 
 const FORMATS_MAP = {
   cjs: {
@@ -88,9 +90,6 @@ const FORMATS_MAP = {
   },
 }
 
-const hasTypescript = entries =>
-  entries.map(entry => path.extname(entry)).some(ext => /.(ts|tsx)$/.test(ext))
-
 const resolveWithCtx = p => path.resolve(CONTEXT, p)
 const filterExclude = filepath => !micromatch.any(filepath, EXCLUDE)
 
@@ -107,7 +106,7 @@ const defaultPlugins = [
   replace({
     'process.env.NODE_ENV': JSON.stringify(ENV),
   }),
-  Boolean(hasTypescript(entries)) &&
+  HAS_TS &&
     typescript({
       typescript: require('typescript'),
       tsconfigDefaults: {
