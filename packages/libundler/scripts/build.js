@@ -30,7 +30,7 @@ Promise.coroutine.addYieldHandler(bluebirdCo.toPromise)
 
 const ENV = process.env.NODE_ENV
 
-const PKG_JSON = loadConfigFile('package')
+const PKG_JSON = loadConfigFile('package', null)
 const BABELRC = loadConfigFile('babel', null)
 const CONFIG = loadConfigFile('lib', {
   dest: argv.dest,
@@ -46,6 +46,19 @@ const CONFIG = loadConfigFile('lib', {
   plugins: plugins => plugins,
   commonjs: {},
 })
+
+if (!PKG_JSON) {
+  process.stderr.write(
+    c.yellow(
+      `${c.yellow.inverse(
+        'WARN'
+      )} no package.json found. Assuming a pkg.name of "${path.basename(
+        argv.cwd
+      )}".`
+    ) + '\n'
+  )
+  exit(1)
+}
 
 const DEST = CONFIG.dest
 const EXCLUDE = CONFIG.exclude
