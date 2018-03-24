@@ -46,6 +46,9 @@ const CONFIG = loadConfigFile('lib', {
 
   plugins: plugins => plugins,
   commonjs: {},
+  resolve: {
+    extensions: ['.js', '.jsx', '.ts', '.tsx'],
+  },
 })
 
 if (!PKG_JSON) {
@@ -71,6 +74,7 @@ const EXTERNAL = CONFIG.external
 const IS_PROD = CONFIG.compress
 const WITH_HASH = CONFIG.hash
 const HAS_TS = CONFIG.typescript
+const RESOLVE = CONFIG.resolve
 
 const FORMATS_MAP = {
   cjs: {
@@ -129,6 +133,7 @@ const defaultPlugins = [
     main: true,
     preferBuiltins: true,
     browser: TARGET !== 'node',
+    extensions: [RESOLVE.extensions],
   }),
   commonjs(
     merge({}, CONFIG.commonjs, {
