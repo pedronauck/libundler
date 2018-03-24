@@ -133,7 +133,7 @@ const defaultPlugins = [
     main: true,
     preferBuiltins: true,
     browser: TARGET !== 'node',
-    extensions: [RESOLVE.extensions],
+    extensions: RESOLVE.extensions,
   }),
   commonjs(
     merge({}, CONFIG.commonjs, {
