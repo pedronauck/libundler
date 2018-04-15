@@ -16,7 +16,9 @@ const defineArgs = yargs => {
     default: [],
     array: true,
   })
-  yargs.positional('external', {})
+  yargs.positional('external', {
+    alias: 'e',
+  })
   yargs.positional('target', {
     default: 'node',
   })
@@ -33,14 +35,14 @@ const defineArgs = yargs => {
     default: fs.realpathSync(process.cwd()),
   })
   yargs.positional('compress', {
-    alias: 's',
+    alias: 'c',
     default: false,
   })
   yargs.positional('hash', {
     default: false,
   })
   yargs.positional('sourcemap', {
-    alias: 'c',
+    alias: 'sm',
     default: false,
   })
 }
