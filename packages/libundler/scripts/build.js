@@ -16,7 +16,6 @@ const commonjs = require('rollup-plugin-commonjs')
 const gzip = require('rollup-plugin-gzip')
 const nodeResolve = require('rollup-plugin-node-resolve')
 const sourceMaps = require('rollup-plugin-sourcemaps')
-const replace = require('rollup-plugin-replace')
 const uglify = require('rollup-plugin-uglify')
 const typescript = require('rollup-plugin-typescript2')
 const { minify } = require('uglify-es')
@@ -124,9 +123,6 @@ const entries = getEntries()
 const useNodeResolve = EXTERNAL !== 'all'
 
 const defaultPlugins = [
-  replace({
-    'process.env.NODE_ENV': JSON.stringify(ENV),
-  }),
   HAS_TS &&
     typescript({
       typescript: require('typescript'),
