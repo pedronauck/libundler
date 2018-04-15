@@ -136,8 +136,6 @@ const defaultPlugins = [
     babel(
       merge(BABELRC, {
         exclude: 'node_modules/**',
-        plugins: ['@babel/plugin-external-helpers'],
-        externalHelpers: true,
       })
     ),
   useNodeResolve &&
