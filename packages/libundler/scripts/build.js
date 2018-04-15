@@ -104,7 +104,24 @@ const getEntries = () => {
   return ls(arr.map(resolveWithCtx)).filter(filterExclude)
 }
 
+const getExternal = () => {
+  const deps = Object.keys(PKG_JSON.dependencies || {})
+  const peerDeps = Object.keys(PKG_JSON.peerDependencies || {})
+  const external = ['dns', 'fs', 'path', 'url'].concat(peerDeps)
+
+  if (EXTERNAL && EXTERNAL === 'all') {
+    return external.concat(deps)
+  }
+
+  if (EXTERNAL && Array.isArray(EXTERNAL)) {
+    return external.concat(EXTERNAL)
+  }
+
+  return external
+}
+
 const entries = getEntries()
+const useNodeResolve = EXTERNAL !== 'all'
 
 const defaultPlugins = [
   replace({
@@ -127,19 +144,21 @@ const defaultPlugins = [
         externalHelpers: true,
       })
     ),
-  nodeResolve({
-    jsnext: true,
-    module: true,
-    main: true,
-    preferBuiltins: true,
-    browser: TARGET !== 'node',
-    extensions: RESOLVE.extensions,
-  }),
-  commonjs(
-    merge({}, CONFIG.commonjs, {
-      include: 'node_modules/**',
-    })
-  ),
+  useNodeResolve &&
+    nodeResolve({
+      jsnext: true,
+      module: true,
+      main: true,
+      preferBuiltins: true,
+      browser: TARGET !== 'node',
+      extensions: RESOLVE.extensions,
+    }),
+  useNodeResolve &&
+    commonjs(
+      merge({}, CONFIG.commonjs, {
+        include: 'node_modules/**',
+      })
+    ),
   SOURCEMAP && sourceMaps(),
   IS_PROD &&
     uglify(
@@ -168,12 +187,9 @@ const plugins =
     ? CONFIG.plugins(defaultPlugins)
     : defaultPlugins
 
-const external = ['dns', 'fs', 'path', 'url'].concat(
-  Object.keys(PKG_JSON.peerDependencies || {}),
-  EXTERNAL
-)
-
 let warningList = {}
+
+const external = getExternal()
 
 const getInputOpts = input => ({
   input,

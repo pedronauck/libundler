@@ -16,10 +16,7 @@ const defineArgs = yargs => {
     default: [],
     array: true,
   })
-  yargs.positional('external', {
-    default: [],
-    array: true,
-  })
+  yargs.positional('external', {})
   yargs.positional('target', {
     default: 'node',
   })

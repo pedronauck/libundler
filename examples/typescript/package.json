@@ -12,6 +12,10 @@
     "build": "libundler build --ts",
     "build:prod": "yarn run build --compress --sourcemap"
   },
+  "dependencies": {
+    "react": "^16.2.0",
+    "react-dom": "^16.2.0"
+  },
   "peerDependencies": {
     "react": "^16.2.0",
     "react-dom": "^16.2.0"
