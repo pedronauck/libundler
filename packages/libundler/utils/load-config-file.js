@@ -25,7 +25,6 @@ const loadConfigFile = (name, defaultConfig = {}) => {
       ? require(filepath)
       : JSON.parse(fs.readFileSync(filepath, 'utf-8'))
   } catch (err) {
-    // console.log(err)
     file = defaultConfig
   }
 

@@ -23,15 +23,15 @@ const { minify } = require('uglify-es')
 const log = require('../utils/log')
 const invariant = require('../utils/invariant')
 const filenameReplace = require('../utils/filename-replace')
-const loadConfigFile = require('../utils/load-config-file')
+const load = require('../utils/load-config-file')
 
 Promise.coroutine.addYieldHandler(bluebirdCo.toPromise)
 
 const ENV = process.env.NODE_ENV
 
-const PKG_JSON = loadConfigFile('package', null)
-const BABELRC = loadConfigFile('babel', null)
-const CONFIG = loadConfigFile('lib', {
+const PKG_JSON = load('package', null)
+const BABELRC = load('babel', null)
+const CONFIG = load('lib', {
   dest: argv.dest,
   exclude: argv.exclude,
   formats: argv.formats,
@@ -43,7 +43,7 @@ const CONFIG = loadConfigFile('lib', {
   compress: argv.compress || ENV === 'production',
   hash: argv.hash,
 
-  plugins: plugins => plugins,
+  plugins: [],
   commonjs: {},
   resolve: {
     extensions: ['.js', '.jsx', '.ts', '.tsx'],
@@ -179,7 +179,7 @@ const outputs = FORMATS.map(format => FORMATS_MAP[format])
 const plugins =
   CONFIG.plugins && typeof CONFIG.plugins === 'function'
     ? CONFIG.plugins(defaultPlugins)
-    : defaultPlugins
+    : CONFIG.plugins.concat(defaultPlugins)
 
 let warningList = {}
 
