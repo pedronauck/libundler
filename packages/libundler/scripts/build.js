@@ -16,7 +16,7 @@ const commonjs = require('rollup-plugin-commonjs')
 const gzip = require('rollup-plugin-gzip')
 const nodeResolve = require('rollup-plugin-node-resolve')
 const sourceMaps = require('rollup-plugin-sourcemaps')
-const uglify = require('rollup-plugin-uglify')
+const { terser } = require('rollup-plugin-terser')
 const typescript = require('rollup-plugin-typescript2')
 const { minify } = require('uglify-es')
 
@@ -155,7 +155,7 @@ const defaultPlugins = [
     ),
   SOURCEMAP && sourceMaps(),
   IS_PROD &&
-    uglify(
+    terser(
       {
         warnings: true,
         ecma: 5,
