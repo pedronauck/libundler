@@ -13,11 +13,12 @@ const { rm, exit, test, ls } = require('shelljs')
 const { rollup, watch } = require('rollup')
 const babel = require('rollup-plugin-babel')
 const commonjs = require('rollup-plugin-commonjs')
-const gzip = require('rollup-plugin-gzip')
 const nodeResolve = require('rollup-plugin-node-resolve')
+const gzip = require('rollup-plugin-gzip')
 const sourceMaps = require('rollup-plugin-sourcemaps')
 const { terser } = require('rollup-plugin-terser')
 const typescript = require('rollup-plugin-typescript2')
+const json = require('rollup-plugin-json')
 const { minify } = require('uglify-es')
 
 const log = require('../utils/log')
@@ -123,6 +124,7 @@ const entries = getEntries()
 const useNodeResolve = EXTERNAL !== 'all'
 
 const defaultPlugins = [
+  json(),
   HAS_TS &&
     typescript({
       typescript: require('typescript'),
