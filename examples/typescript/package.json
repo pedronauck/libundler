@@ -1,7 +1,7 @@
 {
   "name": "libundler-example-typescript",
   "description": "Libundler typescript example",
-  "version": "1.7.4",
+  "version": "1.7.5",
   "license": "MIT",
   "main": "dist/index.js",
   "umd:main": "dist/index.umd.js",
@@ -23,6 +23,6 @@
   "devDependencies": {
     "@types/react": "^16.4.11",
     "@types/react-dom": "^16.0.7",
-    "libundler": "^1.7.4"
+    "libundler": "^1.7.5"
   }
 }
