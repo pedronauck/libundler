@@ -13,13 +13,13 @@ const { rm, exit, test, ls } = require('shelljs')
 const { rollup, watch } = require('rollup')
 const babel = require('rollup-plugin-babel')
 const commonjs = require('rollup-plugin-commonjs')
-const nodeResolve = require('rollup-plugin-node-resolve')
+const peerDepsExternal = require('rollup-plugin-peer-deps-external')
 const gzip = require('rollup-plugin-gzip').default
+const nodeResolve = require('rollup-plugin-node-resolve')
 const sourceMaps = require('rollup-plugin-sourcemaps')
-const { terser } = require('rollup-plugin-terser')
 const typescript = require('rollup-plugin-typescript2')
+const { terser } = require('rollup-plugin-terser')
 const json = require('rollup-plugin-json')
-const { minify } = require('uglify-es')
 
 const log = require('../utils/log')
 const invariant = require('../utils/invariant')
@@ -124,6 +124,7 @@ const entries = getEntries()
 const useNodeResolve = EXTERNAL !== 'all'
 
 const defaultPlugins = [
+  peerDepsExternal(),
   json(),
   HAS_TS &&
     typescript({
@@ -157,22 +158,19 @@ const defaultPlugins = [
     ),
   SOURCEMAP && sourceMaps(),
   IS_PROD &&
-    terser(
-      {
-        warnings: true,
-        ecma: 5,
-        output: {
-          comments: false,
-        },
-        compress: {
-          pure_getters: true,
-          unsafe: true,
-          unsafe_comps: true,
-          warnings: false,
-        },
+    terser({
+      warnings: true,
+      ecma: 5,
+      output: {
+        comments: false,
       },
-      minify
-    ),
+      compress: {
+        pure_getters: true,
+        unsafe: true,
+        unsafe_comps: true,
+        warnings: false,
+      },
+    }),
   IS_PROD && gzip(),
 ].filter(f => f)
 
