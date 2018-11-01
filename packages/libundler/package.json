@@ -10,9 +10,6 @@
   "scripts": {
     "lint": "eslint ./"
   },
-  "engines": {
-    "node": ">= 9.0.0"
-  },
   "dependencies": {
     "@babel/core": "7.1.0",
     "babel-core": "^6.26.3",
