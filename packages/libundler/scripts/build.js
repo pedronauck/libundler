@@ -189,6 +189,8 @@ const getInputOpts = input => ({
   input,
   plugins,
   external,
+  experimentalCodeSplitting: true,
+  experimentalDynamicImport: true,
   onwarn(warning) {
     warningList[input] = warning
   },
