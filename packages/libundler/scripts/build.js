@@ -189,8 +189,6 @@ const getInputOpts = input => ({
   input,
   plugins,
   external,
-  experimentalCodeSplitting: true,
-  experimentalDynamicImport: true,
   onwarn(warning) {
     warningList[input] = warning
   },
@@ -208,12 +206,11 @@ const getOutputOpts = (
   )
 
   const file = path.join(DEST, filenameReplace(CONTEXT, input, filename))
-
   return {
     name,
+    file,
     format,
     sourcemap,
-    file,
     exports: 'named',
   }
 }
