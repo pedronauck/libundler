@@ -13,16 +13,16 @@
     "build:prod": "yarn run build --compress --sourcemap"
   },
   "dependencies": {
-    "react": "^16.5.2",
-    "react-dom": "^16.5.2"
+    "react": "^16.6.3",
+    "react-dom": "^16.6.3"
   },
   "peerDependencies": {
     "react": "^16.2.0",
     "react-dom": "^16.2.0"
   },
   "devDependencies": {
-    "@types/react": "^16.4.14",
-    "@types/react-dom": "^16.0.7",
+    "@types/react": "^16.7.13",
+    "@types/react-dom": "^16.0.11",
     "libundler": "^1.7.9"
   }
 }

@@ -42,10 +42,13 @@ const CONFIG = load('lib', {
   typescript: argv.typescript,
   sourcemap: argv.sourcemap,
   compress: argv.compress || ENV === 'production',
+  useBabel: argv.useBabel,
   hash: argv.hash,
 
   plugins: [],
   commonjs: {},
+  typescriptOpts: {},
+  babelOpts: {},
   resolve: {
     extensions: ['.js', '.jsx', '.ts', '.tsx'],
   },
@@ -75,6 +78,8 @@ const IS_PROD = CONFIG.compress
 const WITH_HASH = CONFIG.hash
 const HAS_TS = CONFIG.typescript
 const RESOLVE = CONFIG.resolve
+const USE_BABEL = CONFIG.useBabel
+const TS_OPTS = CONFIG.typescriptOpts
 
 const FORMATS_MAP = {
   cjs: {
@@ -128,14 +133,17 @@ const defaultPlugins = [
   json(),
   HAS_TS &&
     typescript({
-      typescript: require('typescript'),
-      tsconfigDefaults: {
-        compilerOptions: {
-          declaration: true,
+      tsconfigDefaults: merge(
+        {
+          compilerOptions: {
+            declaration: true,
+          },
         },
-      },
+        TS_OPTS
+      ),
     }),
   Boolean(BABELRC) &&
+    USE_BABEL &&
     babel(
       merge(BABELRC, {
         exclude: 'node_modules/**',
@@ -175,16 +183,13 @@ const defaultPlugins = [
 ].filter(f => f)
 
 const outputs = FORMATS.map(format => FORMATS_MAP[format])
-
 const plugins =
   CONFIG.plugins && typeof CONFIG.plugins === 'function'
     ? CONFIG.plugins(defaultPlugins)
     : CONFIG.plugins.concat(defaultPlugins)
 
 let warningList = {}
-
 const external = getExternal()
-
 const getInputOpts = input => ({
   input,
   plugins,

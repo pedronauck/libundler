@@ -31,6 +31,9 @@ const defineArgs = yargs => {
     alias: 'ts',
     default: false,
   })
+  yargs.positional('useBabel', {
+    default: true,
+  })
   yargs.positional('cwd', {
     default: fs.realpathSync(process.cwd()),
   })
