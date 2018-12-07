@@ -1,7 +1,7 @@
 {
   "name": "libundler-example-basic",
   "description": "Libundler basic example",
-  "version": "1.7.10",
+  "version": "1.7.11",
   "license": "MIT",
   "main": "dist/index.js",
   "umd:main": "dist/index.umd.js",
@@ -21,6 +21,6 @@
     "@babel/plugin-syntax-dynamic-import": "^7.2.0",
     "@babel/preset-env": "^7.2.0",
     "@babel/preset-react": "^7.0.0",
-    "libundler": "^1.7.10"
+    "libundler": "^1.7.11"
   }
 }
