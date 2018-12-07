@@ -80,6 +80,7 @@ const HAS_TS = CONFIG.typescript
 const RESOLVE = CONFIG.resolve
 const USE_BABEL = CONFIG.useBabel
 const TS_OPTS = CONFIG.typescriptOpts
+const BABEL_OPTS = CONFIG.babelOpts
 
 const FORMATS_MAP = {
   cjs: {
@@ -145,7 +146,7 @@ const defaultPlugins = [
   Boolean(BABELRC) &&
     USE_BABEL &&
     babel(
-      merge(BABELRC, {
+      merge(BABELRC, BABEL_OPTS, {
         exclude: 'node_modules/**',
       })
     ),
