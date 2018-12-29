@@ -4,51 +4,51 @@
 const fs = require('fs')
 const yargs = require('yargs')
 
-const defineArgs = yargs => {
-  yargs.positional('source', {
-    alias: 'src',
-  })
-  yargs.positional('dest', {
-    alias: 'd',
-    default: 'dist',
-  })
-  yargs.positional('exclude', {
-    default: [],
-    array: true,
-  })
-  yargs.positional('external', {
-    alias: 'e',
-  })
-  yargs.positional('target', {
-    default: 'node',
-  })
-  yargs.positional('formats', {
-    alias: 'f',
-    default: ['umd', 'cjs', 'es'],
-    array: true,
-  })
-  yargs.positional('typescript', {
-    alias: 'ts',
-    default: false,
-  })
-  yargs.positional('useBabel', {
-    default: true,
-  })
-  yargs.positional('cwd', {
-    default: fs.realpathSync(process.cwd()),
-  })
-  yargs.positional('compress', {
-    alias: 'c',
-    default: false,
-  })
-  yargs.positional('hash', {
-    default: false,
-  })
-  yargs.positional('sourcemap', {
-    alias: 'sm',
-    default: false,
-  })
-}
+const defineArgs = yargs =>
+  yargs
+    .option('source', {
+      alias: 'src',
+    })
+    .option('dest', {
+      alias: 'd',
+      default: 'dist',
+    })
+    .option('exclude', {
+      default: [],
+      array: true,
+    })
+    .option('external', {
+      alias: 'e',
+    })
+    .option('target', {
+      default: 'node',
+    })
+    .option('formats', {
+      alias: 'f',
+      default: ['cjs', 'esm'],
+      array: true,
+    })
+    .option('typescript', {
+      alias: 'ts',
+      default: false,
+    })
+    .option('useBabel', {
+      default: true,
+    })
+    .option('cwd', {
+      default: fs.realpathSync(process.cwd()),
+    })
+    .option('compress', {
+      alias: 'c',
+      default: false,
+    })
+    .option('hash', {
+      default: false,
+    })
+    .option('sourcemap', {
+      alias: 'sm',
+      default: false,
+    })
 
 yargs
   .usage('$0 <cmd> [args]')

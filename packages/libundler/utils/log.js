@@ -12,7 +12,6 @@ const PrettyError = require('pretty-error')
 const pe = new PrettyError()
 
 const symbols = require('./symbols')
-const filenameReplace = require('./filename-replace')
 
 const ROOT_PATH = argv.cwd
 const HAS_GZIP = argv.compress
@@ -52,29 +51,32 @@ exports.compiling = relative => {
 }
 
 exports.success = ({ dest, input, output, warning }) => {
-  const file = filenameReplace(ROOT_PATH, input, output.filename)
-  const outputFile = path.join(dest, file)
+  const files = fs.readdirSync(dest)
 
-  const successTitle = `${symbols.success}  ${c.green.bold(
-    'Successfully compiled:'
-  )}`
-  const warningTitle = `${symbols.warning}  ${c.yellow.bold(
-    'Compiled with warnings:'
-  )}`
-  const title = warning ? warningTitle : successTitle
-  const size = `${placeholder('size')} ${getFilesize(outputFile)}`
-  const gzip = HAS_GZIP
-    ? ` | ${placeholder('gzip')} ${getGZipFilesize(outputFile)}`
-    : ''
-  const sizes = c.gray.dim(`(${size}${gzip})`)
+  files.forEach(file => {
+    const outputFile = path.join(dest, file)
+    const successTitle = `${symbols.success}  ${c.green.bold(
+      'Successfully compiled:'
+    )}`
+    const warningTitle = `${symbols.warning}  ${c.yellow.bold(
+      'Compiled with warnings:'
+    )}`
 
-  const msg = `${title} ${c.cyan(
-    path.relative(ROOT_PATH, outputFile)
-  )} ${sizes}`
+    const title = warning ? warningTitle : successTitle
+    const size = `${placeholder('size')} ${getFilesize(outputFile)}`
+    const gzip = HAS_GZIP
+      ? ` | ${placeholder('gzip')} ${getGZipFilesize(outputFile)}`
+      : ''
+    const sizes = c.gray.dim(`(${size}${gzip})`)
 
-  logUpdate(msg)
-  if (warning) logWarning(warning)
-  logUpdate.done()
+    const msg = `${title} ${c.cyan(
+      path.relative(ROOT_PATH, outputFile)
+    )} ${sizes}`
+
+    logUpdate(msg)
+    if (warning) logWarning(warning)
+    logUpdate.done()
+  })
 }
 
 exports.watch = context => ev => {

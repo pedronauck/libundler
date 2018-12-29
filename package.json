@@ -12,15 +12,15 @@
   ],
   "devDependencies": {
     "babel-eslint": "^10.0.1",
-    "eslint": "^5.9.0",
+    "eslint": "^5.11.1",
     "eslint-config-appson": "^0.5.0",
     "eslint-config-prettier": "^3.3.0",
-    "eslint-config-react-app": "^3.0.5",
+    "eslint-config-react-app": "^3.0.6",
     "eslint-plugin-flowtype": "^3.2.0",
     "eslint-plugin-import": "^2.14.0",
     "eslint-plugin-jsx-a11y": "^6.1.2",
-    "eslint-plugin-react": "^7.11.1",
-    "lerna": "^3.5.1",
+    "eslint-plugin-react": "^7.12.0",
+    "lerna": "^3.8.0",
     "prettier-eslint-cli": "^4.7.1"
   }
 }

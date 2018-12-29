@@ -20,16 +20,17 @@ const sourceMaps = require('rollup-plugin-sourcemaps')
 const typescript = require('rollup-plugin-typescript2')
 const { terser } = require('rollup-plugin-terser')
 const json = require('rollup-plugin-json')
+const externals = require('@yelo/rollup-node-external')
+const PrettyError = require('pretty-error')
 
 const log = require('../utils/log')
-const invariant = require('../utils/invariant')
-const filenameReplace = require('../utils/filename-replace')
 const load = require('../utils/load-config-file')
 
 Promise.coroutine.addYieldHandler(bluebirdCo.toPromise)
 
-const ENV = process.env.NODE_ENV
+const pe = new PrettyError()
 
+const ENV = process.env.NODE_ENV
 const PKG_JSON = load('package', null)
 const BABELRC = load('babel', null)
 const CONFIG = load('lib', {
@@ -44,7 +45,6 @@ const CONFIG = load('lib', {
   compress: argv.compress || ENV === 'production',
   useBabel: argv.useBabel,
   hash: argv.hash,
-
   plugins: [],
   commonjs: {},
   typescriptOpts: {},
@@ -82,24 +82,6 @@ const USE_BABEL = CONFIG.useBabel
 const TS_OPTS = CONFIG.typescriptOpts
 const BABEL_OPTS = CONFIG.babelOpts
 
-const FORMATS_MAP = {
-  cjs: {
-    filename: `[name].${WITH_HASH ? '[hash].' : ''}js`,
-    format: 'cjs',
-    sourcemap: SOURCEMAP,
-  },
-  es: {
-    filename: `[name].${WITH_HASH ? '[hash].' : ''}m.js`,
-    format: 'es',
-    sourcemap: SOURCEMAP,
-  },
-  umd: {
-    filename: `[name].${WITH_HASH ? '[hash].' : ''}umd.js`,
-    format: 'cjs',
-    sourcemap: SOURCEMAP,
-  },
-}
-
 const resolveWithCtx = p => path.resolve(CONTEXT, p)
 const filterExclude = filepath => !micromatch.any(filepath, EXCLUDE)
 
@@ -111,12 +93,11 @@ const getEntries = () => {
 }
 
 const getExternal = () => {
-  const deps = Object.keys(PKG_JSON.dependencies || {})
   const peerDeps = Object.keys(PKG_JSON.peerDependencies || {})
   const external = ['dns', 'fs', 'path', 'url'].concat(peerDeps)
 
   if (EXTERNAL && EXTERNAL === 'all') {
-    return external.concat(deps)
+    return externals()
   }
 
   if (EXTERNAL && Array.isArray(EXTERNAL)) {
@@ -183,6 +164,21 @@ const defaultPlugins = [
   IS_PROD && gzip(),
 ].filter(f => f)
 
+const FORMATS_MAP = {
+  cjs: {
+    chunkFileNames: `[name].[hash].js`,
+    entryFileNames: `[name].${WITH_HASH ? '[hash].' : ''}js`,
+    format: 'cjs',
+    sourcemap: SOURCEMAP,
+  },
+  esm: {
+    chunkFileNames: `[name].[hash].[format].js`,
+    entryFileNames: `[name].${WITH_HASH ? '[hash].' : ''}[format].js`,
+    format: 'esm',
+    sourcemap: SOURCEMAP,
+  },
+}
+
 const outputs = FORMATS.map(format => FORMATS_MAP[format])
 const plugins =
   CONFIG.plugins && typeof CONFIG.plugins === 'function'
@@ -200,27 +196,6 @@ const getInputOpts = input => ({
   },
 })
 
-const getOutputOpts = (
-  input,
-  { name, filename, format = 'cjs', sourcemap = false }
-) => {
-  invariant(
-    format === 'umd' && !name,
-    `Please set a ${c.bold('name')} if your bundle has a ${c.bold(
-      'UMD'
-    )} format`
-  )
-
-  const file = path.join(DEST, filenameReplace(CONTEXT, input, filename))
-  return {
-    name,
-    file,
-    format,
-    sourcemap,
-    exports: 'named',
-  }
-}
-
 const clean = done => {
   const dest = path.resolve(CONTEXT, DEST)
 
@@ -231,34 +206,29 @@ const clean = done => {
 }
 
 const buildEntry = Promise.coroutine(function*(input) {
-  const relative = path.relative(CONTEXT, input)
-
   for (const output of outputs) {
-    const compiling = log.compiling(relative)
     const inputOpts = getInputOpts(input)
-    const outputOpts = getOutputOpts(input, output)
 
     try {
       const bundle = yield rollup(inputOpts)
-      yield bundle.write(outputOpts)
-      log.success({
-        input,
-        output,
-        dest: DEST,
-        warning: warningList[input],
-      })
+      yield bundle.write({ ...output, dir: DEST })
     } catch (err) {
-      console.log(c.red(err))
+      console.log(pe.render(err))
       exit(1)
     }
-
-    clearInterval(compiling)
   }
+
+  log.success({
+    input,
+    dest: DEST,
+    output: outputs[0],
+    warning: warningList[input],
+  })
 })
 
 const watchOpts = input => ({
   ...getInputOpts(input),
-  output: outputs.map(output => getOutputOpts(input, output)),
+  output: outputs.map(output => ({ ...output, dir: DEST })),
   watch: {
     exclude: 'node_modules/**',
   },
@@ -273,7 +243,7 @@ const watchLib = done => {
 }
 
 const buildLib = done => {
-  logUpdate(`${emoji.get(':rocket:')}  Start compiling...`)
+  logUpdate(`${emoji.get(':rocket:')} Start compiling...`)
 
   for (const entry of entries) buildEntry(entry)
   logUpdate.done()
