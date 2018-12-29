@@ -115,14 +115,15 @@ const defaultPlugins = [
   json(),
   HAS_TS &&
     typescript({
-      tsconfigDefaults: merge(
-        {
-          compilerOptions: {
-            declaration: true,
-          },
+      rollupCommonJSResolveHack: true,
+      tsconfig: path.join(CONTEXT, 'tsconfig.json'),
+      tsconfigOverride: {
+        compilerOptions: {
+          declaration: true,
+          declarationDir: path.join(CONTEXT, DEST),
         },
-        TS_OPTS
-      ),
+        ...TS_OPTS,
+      },
     }),
   Boolean(BABELRC) &&
     USE_BABEL &&

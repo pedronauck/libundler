@@ -1,11 +1,11 @@
 {
   "compilerOptions": {
     "target": "es2017",
-    "outDir": "dist/main",
+    "baseUrl": ".",
+    "outDir": "./dist",
     "rootDir": "src",
     "moduleResolution": "node",
     "module": "ESNext",
-    "declaration": true,
     "inlineSourceMap": true,
     "esModuleInterop": true /* Enables emit interoperability between CommonJS and ES Modules via creation of namespace objects for all imports. Implies 'allowSyntheticDefaultImports'. */,
 
